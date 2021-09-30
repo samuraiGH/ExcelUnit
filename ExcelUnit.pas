@@ -1,7 +1,7 @@
 ﻿{$reference 'Microsoft.Office.Interop.Excel.dll'}
 {$reference 'System.Drawing.dll'}
 
-unit ExcelUnitPlus;
+unit ExcelUnit;
 
 interface
 uses Microsoft.Office.Interop.Excel, system, system.Drawing;
