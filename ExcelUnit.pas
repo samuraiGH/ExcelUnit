@@ -4,7 +4,7 @@
 unit ExcelUnit;
 
 interface
-uses Microsoft.Office.Interop.Excel, system, system.Drawing;
+uses Microsoft.Office.Interop.Excel, system, system.Runtime, system.IO, system.Drawing, system.Runtime.InteropServices;
 
 type
   BorderRoute=Microsoft.Office.Interop.Excel.XlBordersIndex;
@@ -84,7 +84,7 @@ type
       property CellDesign: Design read GetCellDesign;
             
       ///Очищает ячейку
-      procedure Clear:=cel.Clear;
+      procedure Clear:= cel.Clear;
   end;
 
   Range=class
@@ -106,7 +106,7 @@ type
       property RangeDesign: Design read GetRangeDesign;
       
       ///Очищает диапазон ячеек
-      procedure Clear:=rang.Clear;
+      procedure Clear:= rang.Clear;
   end;
 
   ExcelApp=class
@@ -144,14 +144,20 @@ type
       ///<summary>Открывает Excel с указаной книгой</summary>
       ///<param name="path">Путь к книге</param>
       procedure Open(path: string);
+      ///<summary>Удаляет столбец</summary>
+      ///<param name="number">номер столбца</param>
+      procedure ColumnDel(number: integer):= (ws.Columns[number, system.Type.Missing] as  Microsoft.Office.Interop.Excel.Range).delete;
+      ///<summary>Удаляет строку</summary>
+      ///<param name="number">номер строки</param>
+      procedure RowDdel(number: integer):= (ws.Rows[number, system.Type.Missing] as  Microsoft.Office.Interop.Excel.Range).delete;
       ///Сохраняет изменения и закрывает книгу
-      procedure Save:=app.Workbooks[1].Close(true);
+      procedure Save:= app.Workbooks[1].Close(true);
       ///Закрывает Excel без сохраениения изменений
       procedure Close;
   end;
     
 implementation
-//реализация приложения
+{$region ExelApp}
   constructor excelapp.Create;
   begin
     app:= new Microsoft.Office.Interop.Excel.ApplicationClass;
@@ -172,56 +178,58 @@ implementation
   
   procedure excelapp.open(path: string);
   begin
-    if system.IO.File.Exists(path)=false then
+    if not system.IO.File.Exists(path) then
       begin
-        var x:=Microsoft.Office.Interop.Excel.ApplicationClass.Create.Workbooks.Add;
-        x.SaveAs(path);
+        app.Quit;
+        Marshal.ReleaseComObject(app);
+        raise new Exception('Файл '''+path+''' не найден');
       end;
     
-    if app.Workbooks.Count>0 then
+    if app.Workbooks.Count > 0 then
       app.Workbooks[1].Close(false);
     
     app.Workbooks.Open(path);
-    app.DisplayAlerts:=false;
-    ws:=app.Workbooks[1].Worksheets[1] as Microsoft.Office.Interop.Excel.Worksheet;
+    app.DisplayAlerts:= false;
+    ws:= app.Workbooks[1].Worksheets[1] as Microsoft.Office.Interop.Excel.Worksheet;
   end;
   
   procedure ExcelApp.Close;
   begin
-    if app.Workbooks.Count>0 then
+    if app.Workbooks.Count > 0 then
       app.Workbooks[1].Close(false);
     app.Quit;
   end;
 
   procedure ExcelApp.SetBook(value: string);
   begin
-    if app.Workbooks.Count>0 then
+    if app.Workbooks.Count > 0 then
       app.Workbooks[1].Close(false);
     app.Workbooks.Open(value);
-    ws:=app.Workbooks[1].Worksheets[1] as Microsoft.Office.Interop.Excel.Worksheet;
+    ws:= app.Workbooks[1].Worksheets[1] as Microsoft.Office.Interop.Excel.Worksheet;
   end;
   
   procedure ExcelApp.SetSheet(index: integer);
   begin
-    if app.Workbooks[1].Worksheets.Count<index-1 then
-      for var i:=app.Workbooks[1].Worksheets.Count to index do
+    if app.Workbooks[1].Worksheets.Count < index-1 then
+      for var i:= app.Workbooks[1].Worksheets.Count to index do
         app.Workbooks[1].Worksheets.Add(system.Reflection.Missing.Value, app.Workbooks[1].Worksheets[i]);
-    ws:=app.workbooks[1].Worksheets[index] as Microsoft.Office.Interop.Excel.Worksheet;
+    ws:= app.workbooks[1].Worksheets[index] as Microsoft.Office.Interop.Excel.Worksheet;
   end;
   
   function ExcelApp.GetCell(i, j: integer): Cell;
   begin
     result:= new Cell;
-    result.cel:=ws.get_range(ws.Cells[i, j], ws.Cells[i, j]);
+    result.cel:= ws.get_range(ws.Cells[i, j], ws.Cells[i, j]);
   end;
   
   function ExcelApp.GetRange(i, j, ii, jj: integer): Range;
   begin
     result:= new Range;
-    result.rang:=ws.get_range(ws.Cells[i, j], ws.Cells[ii, jj]);
+    result.rang:= ws.get_range(ws.Cells[i, j], ws.Cells[ii, jj]);
   end;
-  
-  //реализация диапозона
+{$endregion}
+
+{$region Range}
   procedure Range.SetRangeMerge(value: boolean);
   begin
     if value then
@@ -232,84 +240,86 @@ implementation
   
   procedure Range.SetRangeVal(value: array[,] of object);
   begin
-    rang.Value2:=value;
+    rang.Value2:= value;
   end;
   
   function Range.GetRangeVal: array[,] of object;
   begin
-    result:=new object[rang.Columns.Count, rang.Rows.Count];
-    result:=rang.Value2 as array[,] of object;
+    result:= new object[rang.Columns.Count, rang.Rows.Count];
+    result:= rang.Value2 as array[,] of object;
   end;
   
   function Range.GetRangeDesign: Design;
   begin
     result:= new Design;
-    result.rang:=rang;
+    result.rang:= rang;
   end;
-  
-  //реализация ячейки
+{$endregion}
+
+{$region Cell}
   procedure Cell.SetCellVal(value: object);
   begin
-    cel.Value2:=value;
+    cel.Value2:= value;
   end;
   
   function Cell.GetCellDesign: Design;
   begin
     result:= new Design;
-    result.rang:=cel;
+    result.rang:= cel;
   end;
-  
-  //реализация дизайна
+{$endregion}  
+
+{$region Design}
   procedure Design.SetCellColor(value: color);
   begin
-    if (value.R=255) and (value.G=255) and (value.B=255) then
+    if (value.R = 255) and (value.G = 255) and (value.B = 255) then
       rang.Interior.ColorIndex:=0
     else
-      rang.Interior.Color:=colortranslator.ToOle(value);
+      rang.Interior.Color:= colortranslator.ToOle(value);
   end;
   
   procedure Design.SetTextColor(value: color);
   begin
-    rang.Font.Color:=colortranslator.ToOle(value);
+    rang.Font.Color:= colortranslator.ToOle(value);
   end;
   
   procedure Design.SetCellWidth(value: real);
   begin
-    rang.ColumnWidth:=value;
+    rang.ColumnWidth:= value;
   end;
   
   procedure Design.SetTextBold(value: boolean);
   begin
-    rang.Font.Bold:=value;
+    rang.Font.Bold:= value;
   end;
   
   procedure Design.SetTextSize(value: real);
   begin
-    rang.Font.Size:=value;
+    rang.Font.Size:= value;
   end;
   
   procedure Design.SetCellHeight(value: real);
   begin
-    rang.RowHeight:=value;
+    rang.RowHeight:= value;
   end;
 
   procedure Design.Centralize;
   begin
-    rang.HorizontalAlignment:=Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
-    rang.VerticalAlignment:=Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
+    rang.HorizontalAlignment:= Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
+    rang.VerticalAlignment:= Microsoft.Office.Interop.Excel.XlHAlign.xlHAlignCenter;
   end;
 
   procedure Design.SetBorder(b: BorderRoute; value: boolean);
   begin
     if value then
-      rang.Borders[b].LineStyle:=Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous
+      rang.Borders[b].LineStyle:= Microsoft.Office.Interop.Excel.XlLineStyle.xlContinuous
     else 
-      rang.Borders[b].LineStyle:=Microsoft.Office.Interop.Excel.XlLineStyle.xlLineStyleNone;
+      rang.Borders[b].LineStyle:= Microsoft.Office.Interop.Excel.XlLineStyle.xlLineStyleNone;
   end;
 
   procedure Design.SetBorderColor(b: BorderRoute; value: color);
   begin
-    rang.Borders[b].Color:=colortranslator.ToOle(value);
+    rang.Borders[b].Color:= colortranslator.ToOle(value);
   end;
     
   procedure Design.AutoSize;
@@ -320,44 +330,46 @@ implementation
   
   procedure Design.CellFormat(format: FormatType);
     begin
-      if format=formattype.General then
-        rang.NumberFormat:='general'
-      else if format=formattype.Text then
-        rang.NumberFormat:='@'#0
-      else if format=formattype.Date then
-        rang.NumberFormat:='m/d/yyyy'
-      else if format=formattype.Money then
-        rang.NumberFormat:='#,##0 $'
-      else if format=formattype.Number then
-        rang.NumberFormat:='0'#0
-      else if format=formattype.Percent then
-        rang.NumberFormat:='0%';
+      if format = formattype.General then
+        rang.NumberFormat:= 'general'
+      else if format = formattype.Text then
+        rang.NumberFormat:= '@'#0
+      else if format = formattype.Date then
+        rang.NumberFormat:= 'm/d/yyyy'
+      else if format = formattype.Money then
+        rang.NumberFormat:= '#,##0 $'
+      else if format = formattype.Number then
+        rang.NumberFormat:= '0'#0
+      else if format = formattype.Percent then
+        rang.NumberFormat:= '0%';
     end;  
     
   procedure Design.CellFormat(format: FormatType; number: integer);
   begin
-    if (number<1) or (format=formattype.Date) or (format=formattype.General) or (format=formattype.Money) or (format=formattype.Text) then
+    if (format = formattype.Date) or (format = formattype.General) or (format = formattype.Money) or (format = formattype.Text) then
+      exit;
+    
+    if number < 1 then
       begin
         Cellformat(format);
         exit;
       end;
       
-    var s:='0.';
-    for var i:=1 to number do
-      s+='0';
+    var s:='0.'+('0'*number);
     
-    if format=formattype.Number then
-      rang.NumberFormat:=s
-    else if format=formattype.Percent then
-      rang.NumberFormat:=s+'%';
+    if format = formattype.Number then
+      rang.NumberFormat:= s
+    else
+      rang.NumberFormat:= s+'%';
   end;
 
   function Design.GetBorder(b: BorderRoute): boolean;
     begin
-      result:=if rang.Borders[b].LineStyle.ToString='-4142' then
-        false
-      else
-        true;
+      result:=
+        if rang.Borders[b].LineStyle.ToString='-4142' then
+          false
+        else
+          true;
     end;
-
+{$endregion}
 end.
