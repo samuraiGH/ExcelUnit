@@ -115,10 +115,12 @@ type
       ws: Microsoft.Office.Interop.Excel.Worksheet;
       
       procedure SetBook(value: string);
-      procedure SetSheet(index: integer);
+      procedure SetSheet(value: integer);
+      procedure SetSheetName(value: string);
       
       function GetBook:= app.Workbooks[1].FullName;
       function GetSheet:= ws.Index;
+      function GetSheetName:= ws.Name;
       function GetCell(i, j: integer): Cell;
       function GetRange(i, j, ii, jj: integer): Range;
     public
@@ -134,10 +136,12 @@ type
       
       ///Возвращает или задаёт адрес книги
       property Book: string read GetBook write SetBook;
-      ///Возвращает или задёт номер листа в книге(начиная с 1)
+      ///Возвращает или задёт номер активного листа в книге(начиная с 1)
       property Sheet: integer read GetSheet write SetSheet;
+      ///Возвращает или задёт имя активного листа в книге
+      property SheetName: string read GetSheetName write SetSheetName;
       ///Возвращает ячейку с адресом [y, x] (начиная с [1, 1])
-      property CellOne[i, j: integer]: Cell read GetCell;
+      property CellOne[i, j: integer]: Cell read GetCell; default;
       ///Возвращает диапазон ячеек начиная с [y, x] по [y2, x2]
       property CellRange[i, j, ii, jj: integer]: Range read GetRange;
       
@@ -148,6 +152,8 @@ type
       ///<param name="path">Путь к книге</param>
       ///<param name="sheet">Номер листа(начиная с 1)</param>
       procedure Open(path: string; sheet: integer);
+      ///Удаляет активный лист из книги
+      procedure SheetDel:= ws.Delete;
       ///<summary>Удаляет столбец</summary>
       ///<param name="number">Номер столбца(начиная с 1)</param>
       procedure ColumnDel(number: integer):= (ws.Columns[number, system.Type.Missing] as  Microsoft.Office.Interop.Excel.Range).delete;
@@ -173,7 +179,7 @@ implementation
     open(path);
   end;
   
-  constructor excelapp.Create(path: string; sheet: integer);
+  constructor Excelapp.Create(path: string; sheet: integer);
   begin
     app:= new Microsoft.Office.Interop.Excel.ApplicationClass;
     open(path);
@@ -218,12 +224,17 @@ implementation
     ws:= app.Workbooks[1].Worksheets[1] as Microsoft.Office.Interop.Excel.Worksheet;
   end;
   
-  procedure ExcelApp.SetSheet(index: integer);
+  procedure ExcelApp.SetSheet(value: integer);
   begin
-    if app.Workbooks[1].Worksheets.Count < index-1 then
-      for var i:= app.Workbooks[1].Worksheets.Count to index do
-        app.Workbooks[1].Worksheets.Add(system.Reflection.Missing.Value, app.Workbooks[1].Worksheets[i]);
-    ws:= app.workbooks[1].Worksheets[index] as Microsoft.Office.Interop.Excel.Worksheet;
+    if app.Workbooks[1].Worksheets.Count < value then
+      for var i:= app.Workbooks[1].Worksheets.Count to value-1 do
+        app.Workbooks[1].Worksheets.Add(system.Type.Missing, app.Workbooks[1].Worksheets[i]);
+    ws:= app.workbooks[1].Worksheets[value] as Microsoft.Office.Interop.Excel.Worksheet;
+  end;
+  
+  procedure ExcelApp.SetSheetName(value: string);
+  begin
+    ws.Name:= value;
   end;
   
   function ExcelApp.GetCell(i, j: integer): Cell;
