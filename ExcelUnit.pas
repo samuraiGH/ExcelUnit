@@ -190,9 +190,10 @@ implementation
   begin
     if not system.IO.File.Exists(path) then
       begin
-        app.Quit;
-        Marshal.ReleaseComObject(app);
-        raise new Exception('Файл '''+path+''' не найден');
+        var x:= new Microsoft.Office.Interop.Excel.ApplicationClass;
+        x.Workbooks.Add;
+        x.Workbooks[1].SaveAs(path);
+        x.Quit;
       end;
     
     if app.Workbooks.Count > 0 then
