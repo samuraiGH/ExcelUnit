@@ -9,7 +9,7 @@ app.Save;//сохраняем изменения и закрываем книг�
 app.Close;//закрываем Excel
 ```
 Установка:
-1. Скачать [ExcelUnit](https://github.com/samuraiGH/ExcelUnit/releases/download/v1.0/ExcelUnit.pas)
+1. [Скачать](https://github.com/samuraiGH/ExcelUnit/releases/download/v1.0/ExcelUnit.pas) ExcelUnit
 2. Поместить файл в папку с вашей программой
 
 Ограничения:
