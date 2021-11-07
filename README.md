@@ -1,6 +1,10 @@
 # ExcelUnit
 
-Минимальная программа:
+## Описание
+
+`ExcelUnit` - модуль для работы с Excel в PascalABC.NET.
+
+## Примеры
 
 ```pas
 ## uses ExcelUnit; // Подключаем модуль
