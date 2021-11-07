@@ -2,7 +2,7 @@
 
 ## Описание
 
-`ExcelUnit` - модуль для работы с Excel в PascalABC.NET.
+`ExcelUnit` - модуль для работы с Excel в PascalABC.NET
 
 ## Примеры
 
@@ -23,4 +23,4 @@ app.Close; // Закрываем Excel
 
 ## Ограничения
 
-Должен быть установлен Excel.
+Должен быть установлен Excel
