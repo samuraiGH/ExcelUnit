@@ -4,7 +4,7 @@
 unit ExcelUnit;
 
 interface
-uses Microsoft.Office.Interop.Excel, system, system.Runtime, system.IO, system.Drawing, system.Runtime.InteropServices;
+uses Microsoft.Office.Interop.Excel, system, system.Drawing;
 
 type
   BorderRoute = Microsoft.Office.Interop.Excel.XlBordersIndex;
