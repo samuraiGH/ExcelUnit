@@ -34,7 +34,7 @@ type
       
       function GetCellWidth:= convert.ToDouble(rang.ColumnWidth);
       function GetCellHeight:= convert.ToDouble(rang.RowHeight);
-      function GetBorder(b: BorderRoute): boolean;
+      function GetBorder(b: BorderRoute):= rang.Borders[b].LineStyle.ToString <> '-4142';
       function GetCellColor:= colortranslator.FromOle(convert.ToInt32(rang.Interior.Color));
       function GetBorderColor(b: BorderRoute):= colortranslator.FromOle(convert.ToInt32(rang.Borders[b].Color));
       function GetTextSize:= convert.ToDouble(rang.Font.Size);
@@ -94,7 +94,7 @@ type
       procedure SetRangeVal(value: array[,] of object);
       procedure SetRangeMerge(value: boolean);
       
-      function GetRangeVal: array[,] of object;
+      function GetRangeVal:= rang.Value2 as array[,] of object;
       function GetRangeMerge:= convert.ToBoolean(rang.MergeCells);
       function GetRangeDesign: Design;
     public
@@ -265,12 +265,6 @@ implementation
       rang.UnMerge;
   end;
   
-  function Range.GetRangeVal: array[,] of object;
-  begin
-    result:= new object[rang.Columns.Count, rang.Rows.Count];
-    result:= rang.Value2 as array[,] of object;
-  end;
-  
   function Range.GetRangeDesign: Design;
   begin
     result:= new Design;
@@ -383,15 +377,6 @@ implementation
   procedure Design.SetTextColor(value: color);
   begin
     rang.Font.Color:= colortranslator.ToOle(value);
-  end;
-
-  function Design.GetBorder(b: BorderRoute): boolean;
-  begin
-    result:=
-      if rang.Borders[b].LineStyle.ToString='-4142' then
-        false
-      else
-        true;
   end;
 {$endregion}
 end.
