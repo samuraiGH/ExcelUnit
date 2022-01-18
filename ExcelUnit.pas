@@ -53,7 +53,7 @@ type
       property BorderColor[b: BorderRoute]: Color read GetBorderColor write SetBorderColor;
       ///Задаёт или возвращает размер шрифта
       property TextSize: real read GetTextSize write SetTextSize;
-      ///Задаёт или возвращает налилчие жирности текста
+      ///Задаёт или возвращает наличие жирности текста
       property TextBold: boolean read GetTextBold write SetTextBold;
       ///Задаёт или возвращает цвет текста
       property TextColor: Color read GetTextColor write SetTextColor;
