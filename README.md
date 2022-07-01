@@ -1,4 +1,4 @@
-P.S. В связи с [недавними блокировками](https://habr.com/ru/news/t/661113/) GitHub'ом русских репозиториев, дальнейшие изменения будут размещаться на [GitFlic](https://habr.com/ru/news/t/661113/)
+P.S. В связи с [недавними блокировками](https://habr.com/ru/news/t/661113/) GitHub'ом русских репозиториев, дальнейшие изменения будут размещаться на [GitFlic](https://gitflic.ru/project/samurai/excelunit)
 
 # ExcelUnit
 
